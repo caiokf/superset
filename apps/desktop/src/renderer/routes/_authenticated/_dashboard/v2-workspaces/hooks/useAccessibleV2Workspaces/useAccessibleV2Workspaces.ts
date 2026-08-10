@@ -1,5 +1,4 @@
 import type { CheckItem } from "@superset/local-db";
-import { eq } from "@tanstack/db";
 import { useLiveQuery } from "@tanstack/react-db";
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -10,6 +9,7 @@ import { deriveTerminalAgentStatus } from "renderer/hooks/host-service/useTermin
 import { useHostWorkspacesSource } from "renderer/hooks/host-workspaces/useHostWorkspaces";
 import { useRelayUrl } from "renderer/hooks/useRelayUrl";
 import { authClient } from "renderer/lib/auth-client";
+import { cloudTrpc } from "renderer/lib/cloud-trpc";
 import { getHostServiceClientByUrl } from "renderer/lib/host-service-client";
 import { derivePullRequestQueryTargets } from "renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/hooks/useDashboardSidebarData/derivePullRequestQueryTargets";
 import {
@@ -227,24 +227,18 @@ export function useAccessibleV2Workspaces(
 	const { workspaces: hostWorkspaces, isReady } =
 		deviceFilter === undefined ? fanoutSource : scopedSource;
 
-	const { data: hostRows = [] } = useLiveQuery(
-		(q) =>
-			q.from({ hosts: collections.v2Hosts }).select(({ hosts }) => ({
-				organizationId: hosts.organizationId,
-				machineId: hosts.machineId,
-				name: hosts.name,
-				isOnline: hosts.isOnline,
-			})),
-		[collections],
-	);
+	const { data: hostRows = [] } = cloudTrpc.v2Host.list.useQuery(undefined, {
+		refetchInterval: 30_000,
+		staleTime: 30_000,
+	});
 
-	const { data: userHostRows = [] } = useLiveQuery(
-		(q) =>
-			q
-				.from({ userHosts: collections.v2UsersHosts })
-				.where(({ userHosts }) => eq(userHosts.userId, currentUserId ?? ""))
-				.select(({ userHosts }) => ({ hostId: userHosts.hostId })),
-		[collections, currentUserId],
+	const { data: hostMemberRows = [] } = cloudTrpc.v2Host.listMembers.useQuery(
+		undefined,
+		{ staleTime: 30_000 },
+	);
+	const userHostRows = useMemo(
+		() => hostMemberRows.filter((row) => row.userId === currentUserId),
+		[hostMemberRows, currentUserId],
 	);
 
 	// Projects are fully local — the host fan-out is the identity source.
@@ -271,24 +265,19 @@ export function useAccessibleV2Workspaces(
 		[collections],
 	);
 
-	const { data: repoRows = [] } = useLiveQuery(
-		(q) =>
-			q.from({ repos: collections.githubRepositories }).select(({ repos }) => ({
-				id: repos.id,
-				owner: repos.owner,
-				name: repos.name,
-			})),
-		[collections],
-	);
+	const { data: repoRows = [] } =
+		cloudTrpc.integration.github.listRepositories.useQuery(
+			{ organizationId: activeOrganizationId ?? "" },
+			{ staleTime: 30_000, enabled: !!activeOrganizationId },
+		);
 
-	const { data: creatorRows = [] } = useLiveQuery(
-		(q) =>
-			q.from({ creators: collections.users }).select(({ creators }) => ({
-				id: creators.id,
-				name: creators.name,
-				image: creators.image,
-			})),
-		[collections],
+	const { data: memberRows = [] } = cloudTrpc.organization.listMembers.useQuery(
+		undefined,
+		{ staleTime: 30_000 },
+	);
+	const creatorRows = useMemo(
+		() => memberRows.map((member) => member.user),
+		[memberRows],
 	);
 
 	// Reproduces the former Electric join: workspaces scoped to the active org,

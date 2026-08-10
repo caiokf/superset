@@ -1,20 +1,18 @@
-import type { SelectV2Host } from "@superset/db/schema";
-import { useLiveQuery } from "@tanstack/react-db";
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
 import {
 	getHostWorkspacesQueryKey,
 	type HostWorkspaceRow,
 } from "@/hooks/useHostWorkspaces";
+import { type OrgHost, useOrgHosts } from "@/hooks/useOrgHosts";
 import {
 	buildRelayHostUrl,
 	getHostServiceClientByUrl,
 } from "@/lib/host-service/client";
-import { useCollections } from "@/screens/(authenticated)/providers/CollectionsProvider";
 
 export interface WorkspaceHostResult {
 	workspace: HostWorkspaceRow | null;
-	host: SelectV2Host | null;
+	host: OrgHost | null;
 	/** True while no host has answered yet. */
 	isResolving: boolean;
 }
@@ -27,16 +25,11 @@ export interface WorkspaceHostResult {
 export function useWorkspaceHost(
 	workspaceId: string | null,
 ): WorkspaceHostResult {
-	const collections = useCollections();
-
-	const { data: hosts } = useLiveQuery(
-		(q) => q.from({ v2Hosts: collections.v2Hosts }),
-		[collections],
-	);
+	const hosts = useOrgHosts();
 
 	const targets = useMemo(
 		() =>
-			(hosts ?? [])
+			hosts
 				.filter((host) => host.isOnline)
 				.map((host) => ({
 					host,
@@ -59,7 +52,7 @@ export function useWorkspaceHost(
 
 	return useMemo(() => {
 		let workspace: HostWorkspaceRow | null = null;
-		let host: SelectV2Host | null = null;
+		let host: OrgHost | null = null;
 		targets.forEach(({ host: target }, index) => {
 			if (workspace) return;
 			const match = queries[index]?.data?.find((row) => row.id === workspaceId);
