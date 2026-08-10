@@ -22,9 +22,7 @@ interface HostsSettingsSidebarProps {
 export function HostsSettingsSidebar({
 	selectedHostId,
 }: HostsSettingsSidebarProps) {
-	const { data: hosts = [] } = cloudTrpc.v2Host.list.useQuery(undefined, {
-		staleTime: 30_000,
-	});
+	const { data: hosts = [] } = cloudTrpc.v2Host.list.useQuery(undefined);
 
 	const listGroups = useMemo<Array<SettingsListGroup<HostRow>>>(() => {
 		const sorted = hosts

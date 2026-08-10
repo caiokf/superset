@@ -9,10 +9,8 @@ export const Route = createFileRoute("/_authenticated/settings/hosts/")({
 function HostsIndexPage() {
 	const navigate = useNavigate();
 
-	const { data: hosts = [], isPending } = cloudTrpc.v2Host.list.useQuery(
-		undefined,
-		{ staleTime: 30_000 },
-	);
+	const { data: hosts = [], isPending } =
+		cloudTrpc.v2Host.list.useQuery(undefined);
 
 	const firstHostId = useMemo(() => {
 		const sorted = [...hosts].sort((a, b) => a.name.localeCompare(b.name));
