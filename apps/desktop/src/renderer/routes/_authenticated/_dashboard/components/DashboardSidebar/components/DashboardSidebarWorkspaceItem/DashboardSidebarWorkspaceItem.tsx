@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useDiffStats } from "renderer/hooks/host-service/useDiffStats";
 import { useV2WorkspaceNotificationStatus } from "renderer/hooks/host-service/useV2NotificationStatus";
-import { useOptimisticCollectionActions } from "renderer/routes/_authenticated/hooks/useOptimisticCollectionActions";
+import { useOptimisticActions } from "renderer/routes/_authenticated/hooks/useOptimisticActions";
 import { RenameBranchDialog } from "renderer/screens/main/components/WorkspaceSidebar/WorkspaceListItem/components";
 import { useDashboardSidebarHover } from "../../providers/DashboardSidebarHoverProvider";
 import type { WorkspaceSelectionEvent } from "../../providers/DashboardSidebarSelectionProvider";
@@ -96,7 +96,7 @@ export function DashboardSidebarWorkspaceItem({
 	// git status query everywhere else.
 	const diffStats = useDiffStats(id, { enabled: isActive });
 
-	const { v2Workspaces: v2WorkspaceActions } = useOptimisticCollectionActions();
+	const { v2Workspaces: v2WorkspaceActions } = useOptimisticActions();
 	const [renameBranchTarget, setRenameBranchTarget] = useState<string | null>(
 		null,
 	);

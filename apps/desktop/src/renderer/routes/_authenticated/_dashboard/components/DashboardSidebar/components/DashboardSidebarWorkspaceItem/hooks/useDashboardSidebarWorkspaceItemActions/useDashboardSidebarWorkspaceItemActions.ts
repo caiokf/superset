@@ -15,7 +15,7 @@ import { electronTrpcClient } from "renderer/lib/trpc-client";
 import { useDashboardSidebarSectionRename } from "renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/components/DashboardSidebarSectionRenameContext";
 import { DASHBOARD_SIDEBAR_PULL_REQUEST_QUERY_KEY_PREFIX } from "renderer/routes/_authenticated/_dashboard/components/DashboardSidebar/hooks/useDashboardSidebarData/derivePullRequestQueryTargets";
 import { useDashboardSidebarState } from "renderer/routes/_authenticated/hooks/useDashboardSidebarState";
-import { useOptimisticCollectionActions } from "renderer/routes/_authenticated/hooks/useOptimisticCollectionActions";
+import { useOptimisticActions } from "renderer/routes/_authenticated/hooks/useOptimisticActions";
 import { useLocalHostService } from "renderer/routes/_authenticated/providers/LocalHostServiceProvider";
 import { useDeleteWorkspaceIntent } from "renderer/stores/delete-workspace-intent";
 import { useRemoveFromSidebarIntent } from "renderer/stores/remove-workspace-from-sidebar-intent";
@@ -44,7 +44,7 @@ export function useDashboardSidebarWorkspaceItemActions({
 	const hostService = useLocalHostService();
 	const { activeHostUrl } = hostService;
 	const { copyToClipboard } = useCopyToClipboard();
-	const { v2Workspaces: workspaceActions } = useOptimisticCollectionActions();
+	const { v2Workspaces: workspaceActions } = useOptimisticActions();
 	const { requestSectionRename } = useDashboardSidebarSectionRename();
 	const setManualUnread = useV2NotificationStore((s) => s.setManualUnread);
 	const clearManualUnread = useV2NotificationStore((s) => s.clearManualUnread);
